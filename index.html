@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Songbook">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#181c25" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Chord Songbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: song library rail on the left, music-stand reading pane on the right */
+  --bg:#eef0f3; --surface:#ffffff; --ink:#191d29; --muted:#596175; --line:#d9dde5;
+  --accent:#1f4fd1; --accent-soft:#e4ebfc; --danger:#b42318;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-chord:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131a; --surface:#181c25; --ink:#e7eaf1; --muted:#949cae; --line:#2b3140;
+    --accent:#8aa9ff; --accent-soft:#1e2842; --danger:#ff8a80; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#181c25; --ink:#e7eaf1; --muted:#949cae; --line:#2b3140;
+  --accent:#8aa9ff; --accent-soft:#1e2842; --danger:#ff8a80; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+.app{padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.scroller,.song-list,.edit-prev{-webkit-overflow-scrolling:touch}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none !important}
+
+.app{display:grid;grid-template-columns:272px minmax(0,1fr);height:100%}
+.app.focus{grid-template-columns:minmax(0,1fr)}
+.app.focus .lib{display:none}
+
+/* Library */
+.lib{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px;padding:18px 14px 14px;min-height:0}
+.lib-head{display:flex;justify-content:space-between;align-items:center;padding:0 4px}
+.brand{font-family:var(--f-display);font-weight:700;font-size:1.3rem;letter-spacing:-.02em}
+.brand span{color:var(--accent)}
+#search{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.lib-actions{display:flex;gap:8px}
+.lib-actions .btn{flex:1;justify-content:center}
+.song-list{list-style:none;margin:0;padding:0;overflow:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:2px}
+.song-list button{width:100%;text-align:left;border:0;background:none;padding:9px 10px;border-radius:8px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:1px 10px}
+.song-list button:hover{background:var(--bg)}
+.song-list button[aria-current="true"]{background:var(--accent-soft)}
+.sl-title{font-weight:700;overflow-wrap:anywhere}
+.sl-artist{grid-column:1;color:var(--muted);font-size:.84rem}
+.sl-key{grid-row:1 / 3;grid-column:2;align-self:center;font-family:var(--f-chord);font-size:.8rem;color:var(--accent);font-weight:700}
+.empty-list{color:var(--muted);font-size:.9rem;padding:8px 10px}
+.lib-foot{margin:0;color:var(--muted);font-size:.78rem;padding:0 4px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.88rem;white-space:nowrap;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.danger{color:var(--danger)}
+.btn.danger.armed{background:var(--danger);border-color:var(--danger);color:var(--surface)}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.btn.sq{width:34px;height:34px;padding:0;justify-content:center;font-size:1rem}
+.only-mobile{display:none}
+
+/* Main */
+.main{min-width:0;min-height:0;display:flex;flex-direction:column}
+.view,.edit{display:flex;flex-direction:column;min-height:0;flex:1}
+.song-head{display:flex;align-items:flex-end;gap:12px 18px;padding:22px 28px 14px;flex-wrap:wrap}
+.titles{flex:1;min-width:200px}
+h1{font-family:var(--f-display);font-size:clamp(1.6rem,3vw,2.4rem);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.025em}
+.artist{margin:4px 0 0;color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:4px 11px;background:var(--surface);color:var(--muted)}
+.chip b{color:var(--ink);font-family:var(--f-chord)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:9px 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface)}
+.tg{display:flex;align-items:center;gap:6px}
+.tg.end{margin-left:auto}
+.tl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+#tVal{min-width:2.4em;text-align:center;font-family:var(--f-chord);font-weight:700;font-variant-numeric:tabular-nums}
+select{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:7px 8px;font-size:.88rem}
+input[type=range]{accent-color:var(--accent);width:88px}
+.scroller{flex:1;overflow:auto;padding:26px 28px 45vh;scroll-behavior:auto}
+
+/* Song sheet */
+.sheet{--fs:20px;font-size:var(--fs);max-width:62em}
+.sheet.cols{columns:2 20em;column-gap:3em;max-width:none}
+.stanza{margin:0 0 1.1em;break-inside:avoid;padding:.15em 0 .15em .85em;border-left:3px solid transparent}
+.stanza.chorus{border-left-color:var(--accent)}
+.label{font-family:var(--f-display);font-weight:700;font-size:.68em;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 .25em}
+.line{display:flex;flex-wrap:wrap;align-items:flex-end;line-height:1.35}
+.line.plain{display:block;white-space:pre-wrap}
+.seg{display:inline-flex;flex-direction:column}
+.ch{font-family:var(--f-chord);font-weight:700;color:var(--accent);font-size:.8em;padding:0 .5em 0 0;line-height:1.35;white-space:pre;border:0;background:none;text-align:left;cursor:pointer;border-radius:3px}
+.ch:hover{text-decoration:underline;text-underline-offset:3px}
+.ch.na{cursor:default;text-decoration:none}
+.ch.blank{visibility:hidden;width:0;padding:0;overflow:hidden}
+.ly{white-space:pre;min-height:1.35em}
+.chords-only .seg{margin-right:1.1em}
+.chords-only .ly{display:none}
+.sheet-empty{color:var(--muted);font-size:1rem;max-width:36em}
+
+/* Chord diagrams */
+.diagrams{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}
+.dg{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 6px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;width:86px}
+.dg-name{font-family:var(--f-chord);font-weight:700;color:var(--accent);font-size:.9rem}
+.dg svg{width:70px;height:82px;color:var(--ink);display:block}
+.dg-note{font-size:.68rem;color:var(--muted);text-align:center}
+.pop{position:fixed;z-index:30;filter:drop-shadow(0 6px 18px rgba(0,0,0,.18))}
+
+/* Editor */
+.edit-bar{display:flex;gap:8px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
+.edit-bar strong{font-family:var(--f-display);font-size:1.1rem}
+.spacer{flex:1}
+.edit-grid{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0}
+.edit-src{display:flex;flex-direction:column;padding:16px 20px;gap:10px;min-height:0;border-right:1px solid var(--line);overflow:auto}
+.edit-src label,.prev-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+#src{flex:1;min-height:320px;resize:none;font-family:var(--f-chord);font-size:14px;line-height:1.55;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface);tab-size:4;white-space:pre;overflow:auto}
+.edit-prev{overflow:auto;padding:16px 24px 60px;display:flex;flex-direction:column;gap:12px}
+.edit-prev .sheet{--fs:17px}
+.prev-title{font-family:var(--f-display);font-size:1.4rem;font-weight:700;margin:0}
+.help{font-size:.86rem;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--surface)}
+.help summary{cursor:pointer;font-weight:700;color:var(--ink)}
+.help dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:10px 0 4px}
+.help dt{font-family:var(--f-chord);color:var(--ink);font-size:.8rem;white-space:pre}
+.help dd{margin:0}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-weight:700;font-size:.9rem;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+.scrim{display:none}
+
+@media (max-width: 760px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .lib{position:fixed;inset:0 auto 0 0;width:min(300px,86vw);z-index:20;transform:translateX(-102%);transition:transform .2s ease;box-shadow:0 0 40px rgba(0,0,0,.25)}
+  .lib.open{transform:none}
+  .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:15}
+  .only-mobile{display:inline-flex}
+  .song-head{padding:16px 16px 10px}
+  .toolbar{padding:8px 16px;gap:8px 12px}
+  .tg.end{margin-left:0}
+  .scroller{padding:18px 16px 45vh}
+  .edit-grid{grid-template-columns:minmax(0,1fr);overflow:auto}
+  .edit-src{border-right:0;border-bottom:1px solid var(--line);overflow:visible}
+  #src{min-height:45vh}
+  .edit-prev{overflow:visible}
+}
+@media (pointer: coarse){
+  .btn{min-height:42px;padding:8px 14px}
+  .btn.sq{width:44px;height:44px}
+  select{min-height:42px}
+  #search,select,#src{font-size:16px}
+  input[type=range]{width:120px}
+  .song-list button{padding:12px 10px}
+  .lib-foot{padding-bottom:env(safe-area-inset-bottom)}
+}
+@media (prefers-reduced-motion: reduce){ .lib,.toast{transition:none} }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="lib" id="lib" aria-label="Song library">
+    <div class="lib-head">
+      <div class="brand">Chord <span>Songbook</span></div>
+      <button class="btn sq only-mobile" id="closeLib" aria-label="Close song list">✕</button>
+    </div>
+    <input id="search" type="search" placeholder="Search title or artist" aria-label="Search songs">
+    <div class="lib-actions">
+      <button class="btn primary" id="newSong">+ New song</button>
+      <button class="btn" id="importBtn">Import</button>
+      <input type="file" id="importFile" accept=".cho,.chordpro,.chopro,.crd,.pro,.txt,.json,text/plain,application/json" multiple hidden>
+    </div>
+    <ul class="song-list" id="songList"></ul>
+    <button class="btn" id="backupBtn">Back up all songs</button>
+    <p class="lib-foot">Songs are saved on this device. “Back up all songs” saves a file you can import on another device.</p>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <section class="view" id="viewMode">
+      <header class="song-head">
+        <button class="btn only-mobile" id="openLib">☰ Songs</button>
+        <div class="titles">
+          <h1 id="songTitle">Untitled</h1>
+          <p class="artist" id="songArtist"></p>
+        </div>
+        <div class="chips" id="chips"></div>
+        <div class="tg">
+          <button class="btn" id="focusBtn" aria-pressed="false">Focus</button>
+          <button class="btn primary" id="editBtn">Edit</button>
+        </div>
+      </header>
+      <div class="toolbar" id="toolbar" role="toolbar" aria-label="Song controls">
+        <div class="tg"><span class="tl">Transpose</span>
+          <button class="btn sq" id="tDown" aria-label="Transpose down a half step">−</button>
+          <output id="tVal" aria-live="polite">0</output>
+          <button class="btn sq" id="tUp" aria-label="Transpose up a half step">+</button>
+        </div>
+        <div class="tg">
+          <select id="acc" aria-label="Sharps or flats">
+            <option value="auto">Auto ♯/♭</option>
+            <option value="sharp">Sharps ♯</option>
+            <option value="flat">Flats ♭</option>
+          </select>
+        </div>
+        <div class="tg"><span class="tl">Text</span>
+          <button class="btn sq" id="fDown" aria-label="Smaller text">A−</button>
+          <button class="btn sq" id="fUp" aria-label="Larger text">A+</button>
+        </div>
+        <div class="tg">
+          <button class="btn" id="dgBtn" aria-pressed="false">Chord charts</button>
+          <button class="btn" id="colsBtn" aria-pressed="false">2 columns</button>
+        </div>
+        <div class="tg"><button class="btn" id="scrollBtn" aria-pressed="false">▶ Auto-scroll</button>
+          <input type="range" id="speed" min="1" max="10" value="4" aria-label="Scroll speed">
+        </div>
+      </div>
+      <div class="scroller" id="scroller">
+        <div class="diagrams" id="diagrams" hidden></div>
+        <article class="sheet" id="sheet"></article>
+      </div>
+    </section>
+
+    <section class="edit" id="editMode" hidden>
+      <div class="edit-bar">
+        <strong id="editHeading">Edit song</strong>
+        <span class="spacer"></span>
+        <button class="btn" id="copyBtn">Copy text</button>
+        <button class="btn danger" id="deleteBtn">Delete</button>
+        <button class="btn" id="cancelBtn">Cancel</button>
+        <button class="btn primary" id="saveBtn">Save</button>
+      </div>
+      <div class="edit-grid">
+        <div class="edit-src">
+          <label for="src">Song text</label>
+          <textarea id="src" spellcheck="false" autocomplete="off"></textarea>
+          <details class="help">
+            <summary>Formatting help</summary>
+            <dl>
+              <dt>[G]Amazing [C]grace</dt><dd>Chord in brackets, placed right before the syllable it lands on.</dd>
+              <dt>G      C
+Amazing grace</dt><dd>Or paste a chord line above a lyric line; columns line up automatically.</dd>
+              <dt>{title: Song}</dt><dd>Also {artist: …}, {key: G}, {capo: 2}, {tempo: 90}.</dd>
+              <dt>Verse 1:</dt><dd>Section labels: a short line ending in a colon, or [Chorus], [Bridge], etc.</dd>
+              <dt>{soc} … {eoc}</dt><dd>Marks a chorus block. A “Chorus:” label works too.</dd>
+              <dt>{c: Repeat x2}</dt><dd>A note shown between sections.</dd>
+            </dl>
+          </details>
+        </div>
+        <div class="edit-prev">
+          <div class="prev-label">Preview</div>
+          <p class="prev-title" id="prevTitle"></p>
+          <article class="sheet" id="preview"></article>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="pop" id="pop" hidden></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ---------- Music theory ---------- */
+const SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const ODD = {Cb:11, Fb:4, 'E#':5, 'B#':0};
+function normAcc(s){ return s.replace(/♯/g,'#').replace(/♭/g,'b'); }
+function noteIdx(n){
+  n = normAcc(n);
+  let i = SHARP.indexOf(n); if (i < 0) i = FLAT.indexOf(n);
+  if (i < 0 && n in ODD) i = ODD[n];
+  return i;
+}
+const CHORD_RE = /^[A-G](?:#|b|♯|♭)?(?:maj|min|m|M|dim|aug|sus|add|°|ø|\+|-)?\d*(?:(?:maj|sus|add|b|#|♭|♯|\+|-)\d+)*(?:\([^)]*\))?(?:\/[A-G](?:#|b|♯|♭)?)?$/;
+function isChord(t){ return CHORD_RE.test(t.trim()); }
+function isChordLine(t){
+  const toks = t.trim().split(/\s+/).filter(Boolean);
+  if (!toks.length) return false;
+  let n = 0;
+  for (const k of toks){
+    if (k === '|' || k === '||' || /^N\.?C\.?$/i.test(k) || /^\(?x\d+\)?$/i.test(k)) continue;
+    if (!isChord(k)) return false;
+    n++;
+  }
+  return n > 0;
+}
+function transposeChord(ch, semis, flats){
+  const m = normAcc(ch).match(/^([A-G][#b]?)(.*?)(?:\/([A-G][#b]?))?$/);
+  if (!m || !isChord(ch)) return ch;
+  const names = flats ? FLAT : SHARP;
+  const mv = n => { const i = noteIdx(n); return i < 0 ? n : names[(i + semis + 120) % 12]; };
+  return mv(m[1]) + m[2] + (m[3] ? '/' + mv(m[3]) : '');
+}
+function prettyChord(c){
+  return c.replace(/^([A-G])#/,'$1♯').replace(/^([A-G])b/,'$1♭')
+          .replace(/\/([A-G])#/,'/$1♯').replace(/\/([A-G])b/,'/$1♭')
+          .replace(/b(\d)/g,'♭$1').replace(/#(\d)/g,'♯$1');
+}
+const FLAT_MAJ = [5,10,3,8,1,6], FLAT_MIN = [2,7,0,5,10,3];
+function useFlats(baseChord, semis, pref){
+  if (pref === 'flat') return true;
+  if (pref === 'sharp') return false;
+  if (!baseChord) return false;
+  const m = normAcc(baseChord).match(/^([A-G][#b]?)(m(?!aj))?/);
+  if (!m) return false;
+  const i = noteIdx(m[1]); if (i < 0) return false;
+  const t = (i + semis + 120) % 12;
+  return m[2] ? FLAT_MIN.includes(t) : FLAT_MAJ.includes(t);
+}
+
+/* ---------- Guitar chord shapes ---------- */
+const SHAPES = {
+  C:'x32010', D:'xx0232', E:'022100', F:'133211', G:'320003', A:'x02220', B:'x24442',
+  Cm:'x35543', Dm:'xx0231', Em:'022000', Fm:'133111', Gm:'355333', Am:'x02210', Bm:'x24432',
+  C7:'x32310', D7:'xx0212', E7:'020100', F7:'131211', G7:'320001', A7:'x02020', B7:'x21202',
+  Am7:'x02010', Dm7:'xx0211', Em7:'022030', Bm7:'x20202',
+  Cmaj7:'x32000', Dmaj7:'xx0222', Fmaj7:'xx3210', Gmaj7:'320002', Amaj7:'x02120', Emaj7:'021100',
+  Dsus2:'xx0230', Dsus4:'xx0233', Asus2:'x02200', Asus4:'x02230', Esus4:'022200', Gsus4:'330013', Csus4:'x33010',
+  Cadd9:'x32030', 'F#m':'244222', 'C#m':'x46654', 'G#m':'466444', 'F#':'244322', 'C#':'x46664',
+  Bb:'x13331', Eb:'x68886', Ab:'466544', Bbm:'x13321', Ebm:'x68766'
+};
+const ENH = {'C#':'Db','Db':'C#','D#':'Eb','Eb':'D#','F#':'Gb','Gb':'F#','G#':'Ab','Ab':'G#','A#':'Bb','Bb':'A#'};
+const E_SHAPE = {'':[0,2,2,1,0,0], m:[0,2,2,0,0,0], '7':[0,2,0,1,0,0], m7:[0,2,0,0,0,0], sus4:[0,2,2,2,0,0]};
+const A_SHAPE = {'':[-1,0,2,2,2,0], m:[-1,0,2,2,1,0], '7':[-1,0,2,0,2,0], m7:[-1,0,2,0,1,0], maj7:[-1,0,2,1,2,0], sus4:[-1,0,2,2,3,0], sus2:[-1,0,2,2,0,0]};
+const parseShape = s => s.split('').map(c => c === 'x' ? -1 : +c);
+function chordShape(name){
+  name = normAcc(name).split('/')[0];
+  const m = name.match(/^([A-G][#b]?)(.*)$/); if (!m) return null;
+  let root = m[1], suf = m[2];
+  suf = suf.replace(/^min/,'m').replace(/^-(?=\d|$)/,'m').replace(/^M7/,'maj7').replace(/^M$/,'').replace(/^maj$/,'');
+  if (SHAPES[root + suf]) return {frets: parseShape(SHAPES[root + suf])};
+  if (ENH[root] && SHAPES[ENH[root] + suf]) return {frets: parseShape(SHAPES[ENH[root] + suf])};
+  let q = suf, approx = false;
+  if (!(q in A_SHAPE) && !(q in E_SHAPE)){
+    approx = true;
+    if (/^m(?!aj)/.test(q)) q = q.includes('7') ? 'm7' : 'm';
+    else q = q.includes('7') ? '7' : '';
+  }
+  const r = noteIdx(root); if (r < 0) return null;
+  const cands = [];
+  if (E_SHAPE[q]) cands.push({base:(r - 4 + 12) % 12, s:E_SHAPE[q]});
+  if (A_SHAPE[q]) cands.push({base:(r - 9 + 12) % 12, s:A_SHAPE[q]});
+  cands.sort((a,b) => a.base - b.base);
+  const c = cands[0];
+  return {frets: c.s.map(f => f < 0 ? -1 : f + c.base), approx: approx ? (root + q) : null};
+}
+function diagramSVG(frets){
+  const fretted = frets.filter(f => f > 0);
+  const max = fretted.length ? Math.max(...fretted) : 0;
+  const min = fretted.length ? Math.min(...fretted) : 0;
+  const base = max <= 4 ? 1 : min;
+  const x0 = 14, dx = 9, y0 = 16, dy = 12, nF = 5;
+  let s = '<svg viewBox="0 0 70 82" aria-hidden="true">';
+  for (let i = 0; i < 6; i++) s += `<line x1="${x0+i*dx}" y1="${y0}" x2="${x0+i*dx}" y2="${y0+nF*dy}" stroke="currentColor" stroke-width=".9" opacity=".55"/>`;
+  for (let j = 0; j <= nF; j++){
+    const nut = j === 0 && base === 1;
+    s += `<line x1="${x0}" y1="${y0+j*dy}" x2="${x0+5*dx}" y2="${y0+j*dy}" stroke="currentColor" stroke-width="${nut?3:.9}" opacity="${nut?1:.55}"/>`;
+  }
+  if (base > 1) s += `<text x="${x0-4}" y="${y0+dy*.5+3}" font-size="8" text-anchor="end" fill="currentColor" font-family="sans-serif">${base}</text>`;
+  const first = frets.findIndex(f => f >= 0);
+  const barre = min > 0 && frets[first] === min && frets[5] === min && frets.slice(first).every(f => f >= min) && frets.filter(f => f === min).length >= 2;
+  if (barre){
+    const y = y0 + (min - base + .5) * dy;
+    s += `<rect x="${x0+first*dx-3.6}" y="${y-3.6}" width="${(5-first)*dx+7.2}" height="7.2" rx="3.6" fill="currentColor"/>`;
+  }
+  frets.forEach((f,i) => {
+    const x = x0 + i*dx;
+    if (f < 0) s += `<text x="${x}" y="${y0-4}" font-size="8" text-anchor="middle" fill="currentColor" opacity=".7" font-family="sans-serif">×</text>`;
+    else if (f === 0) s += `<circle cx="${x}" cy="${y0-6}" r="2.4" fill="none" stroke="currentColor" stroke-width=".9"/>`;
+    else if (!(barre && f === min)) s += `<circle cx="${x}" cy="${y0+(f-base+.5)*dy}" r="3.5" fill="currentColor"/>`;
+  });
+  return s + '</svg>';
+}
+function diagramCard(name){
+  const shape = chordShape(name);
+  const label = esc(prettyChord(name));
+  if (!shape) return `<div class="dg"><div class="dg-name">${label}</div><div class="dg-note">No chart</div></div>`;
+  const note = shape.approx ? `<div class="dg-note">shown as ${esc(prettyChord(shape.approx))}</div>` : '';
+  return `<div class="dg"><div class="dg-name">${label}</div>${diagramSVG(shape.frets)}${note}</div>`;
+}
+
+/* ---------- Parsing ---------- */
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const SECTION_RE = /^(verse|chorus|bridge|intro|outro|pre-?chorus|refrain|interlude|solo|tag|coda|instrumental|ending|break|hook|riff)\b[\w .#\-]*:?$/i;
+function labelOf(t){
+  const br = t.match(/^\[([^\]]+)\]:?$/);
+  if (br && !isChord(br[1].trim()) && !/^N\.?C\.?$/i.test(br[1].trim())) return br[1].trim();
+  if (t.length <= 32 && !t.includes('[') && (SECTION_RE.test(t) || /^[A-Za-z][\w .#\-]{0,26}:$/.test(t)) && !isChordLine(t)) return t.replace(/:$/,'').trim();
+  return null;
+}
+function chordPositions(line){
+  const res = [], re = /\S+/g; let m;
+  while ((m = re.exec(line))) if (m[0] !== '|' && m[0] !== '||') res.push({pos:m.index, chord:m[0]});
+  return res;
+}
+function mergeLines(cline, lyric){
+  const cp = chordPositions(cline), segs = [];
+  let ly = lyric;
+  const last = cp[cp.length-1].pos;
+  if (ly.length < last) ly = ly.padEnd(last, ' ');
+  if (cp[0].pos > 0) segs.push({chord:'', text:ly.slice(0, cp[0].pos)});
+  cp.forEach((c,i) => segs.push({chord:c.chord, text:ly.slice(c.pos, i+1 < cp.length ? cp[i+1].pos : undefined)}));
+  return segs;
+}
+function parseInline(line){
+  const parts = line.split(/\[([^\]]*)\]/), segs = [];
+  if (parts[0]) segs.push({chord:'', text:parts[0]});
+  for (let i = 1; i < parts.length; i += 2) segs.push({chord:parts[i].trim(), text:parts[i+1] || ''});
+  return segs;
+}
+function parseSong(text){
+  const meta = {}, out = [];
+  let chorus = false, plainChorus = false;
+  const raw = text.replace(/\r\n?/g,'\n').replace(/\t/g,'    ').split('\n');
+  for (let i = 0; i < raw.length; i++){
+    const line = raw[i], t = line.trim();
+    const d = t.match(/^\{\s*([a-z_]+)\s*(?::\s*(.*?))?\s*\}$/i);
+    if (d){
+      const k = d[1].toLowerCase(), v = (d[2] || '').trim();
+      if (k === 'title' || k === 't') meta.title = v;
+      else if (['subtitle','st','artist','composer','lyricist'].includes(k)) { if (!meta.artist) meta.artist = v; }
+      else if (k === 'key') meta.key = v;
+      else if (k === 'capo') meta.capo = v;
+      else if (k === 'tempo') meta.tempo = v;
+      else if (['comment','c','ci','comment_italic','cb','comment_box','highlight'].includes(k)) out.push({type:'label', text:v});
+      else if (k === 'soc' || k === 'start_of_chorus'){ chorus = true; out.push({type:'break'}); out.push({type:'label', text:v || 'Chorus'}); }
+      else if (k === 'eoc' || k === 'end_of_chorus'){ chorus = false; out.push({type:'break'}); }
+      else if (k === 'sob' || k === 'start_of_bridge'){ out.push({type:'break'}); out.push({type:'label', text:v || 'Bridge'}); }
+      else if (k === 'sov' || k === 'start_of_verse'){ out.push({type:'break'}); if (v) out.push({type:'label', text:v}); }
+      continue;
+    }
+    if (t === ''){ plainChorus = false; out.push({type:'break'}); continue; }
+    if (t.startsWith('#')) continue;
+    const lab = labelOf(t);
+    if (lab){
+      plainChorus = /^(chorus|refrain)/i.test(lab);
+      out.push({type:'break'}); out.push({type:'label', text:lab, chorus:plainChorus || chorus});
+      continue;
+    }
+    let segs, only = false;
+    if (isChordLine(t)){
+      const next = raw[i+1];
+      const nt = next === undefined ? '' : next.trim();
+      if (nt && !isChordLine(nt) && !nt.startsWith('{') && !nt.includes('[') && !labelOf(nt)){
+        segs = mergeLines(line.replace(/\t/g,'    '), next.replace(/\t/g,'    ')); i++;
+      } else { segs = chordPositions(line).map(c => ({chord:c.chord, text:''})); only = true; }
+    } else segs = parseInline(line);
+    out.push({type:'lyric', segs, only, chorus: chorus || plainChorus});
+  }
+  return {meta, lines: out};
+}
+function firstChord(p){
+  for (const l of p.lines) if (l.type === 'lyric') for (const s of l.segs) if (s.chord && isChord(s.chord)) return s.chord;
+  return null;
+}
+
+/* ---------- Rendering ---------- */
+function renderSheet(el, p, prefs, opts){
+  const base = p.meta.key || firstChord(p);
+  const flats = useFlats(base, prefs.t, prefs.acc);
+  const tc = c => (prefs.t === 0 && prefs.acc === 'auto') ? c : transposeChord(c, prefs.t, flats);
+  const used = [];
+  const stanzas = []; let cur = null;
+  const open = () => { if (!cur){ cur = {chorus:false, html:''}; stanzas.push(cur); } };
+  for (const l of p.lines){
+    if (l.type === 'break'){ cur = null; continue; }
+    open();
+    if (l.type === 'label'){
+      if (l.chorus) cur.chorus = true;
+      cur.html += `<div class="label">${esc(l.text)}</div>`; continue;
+    }
+    if (l.chorus) cur.chorus = true;
+    const has = l.segs.some(s => s.chord);
+    if (!has){ cur.html += `<div class="line plain">${esc(l.segs.map(s => s.text).join('')) || '&nbsp;'}</div>`; continue; }
+    let h = `<div class="line${l.only ? ' chords-only' : ''}">`;
+    for (const s of l.segs){
+      let chHtml;
+      if (!s.chord) chHtml = `<span class="ch blank" aria-hidden="true">·</span>`;
+      else {
+        const c = tc(s.chord), ok = isChord(c);
+        if (ok && !used.includes(c)) used.push(c);
+        chHtml = ok ? `<button type="button" class="ch" data-c="${esc(c)}">${esc(prettyChord(c))}</button>`
+                    : `<span class="ch na">${esc(s.chord)}</span>`;
+      }
+      h += `<span class="seg">${chHtml}<span class="ly">${esc(s.text)}</span></span>`;
+    }
+    cur.html += h + '</div>';
+  }
+  el.innerHTML = stanzas.filter(s => s.html).map(s => `<div class="stanza${s.chorus ? ' chorus' : ''}">${s.html}</div>`).join('')
+    || `<p class="sheet-empty">This song has no lyrics yet. Choose Edit to add some.</p>`;
+  return {used, flats, tc};
+}
+
+/* ---------- Samples (public-domain songs) ---------- */
+function cl(pairs){ let s = ''; for (const [pos, c] of pairs){ s = s.padEnd(pos, ' ') + c; } return s; }
+const SAMPLES = [
+`{title: Amazing Grace}
+{artist: John Newton, 1779}
+{key: G}
+{tempo: 80}
+
+Verse 1:
+A[G]mazing [G7]grace, how [C]sweet the [G]sound
+That saved a wretch like [D]me
+I [G]once was [G7]lost, but [C]now am [G]found
+Was [Em]blind, but [D]now I [G]see
+
+Verse 2:
+'Twas [G]grace that [G7]taught my [C]heart to [G]fear
+And grace my fears re[D]lieved
+How [G]precious [G7]did that [C]grace ap[G]pear
+The [Em]hour I [D]first be[G]lieved
+
+Verse 3:
+Through [G]many [G7]dangers, [C]toils and [G]snares
+I have already [D]come
+'Tis [G]grace hath [G7]brought me [C]safe thus [G]far
+And [Em]grace will [D]lead me [G]home`,
+`{title: Oh! Susanna}
+{artist: Stephen Foster, 1848}
+{key: C}
+
+Verse 1:
+${cl([[0,'C'],[40,'G']])}
+I come from Alabama with my banjo on my knee
+${cl([[4,'C'],[37,'G'],[44,'C']])}
+I'm going to Louisiana, my true love for to see
+${cl([[3,'C'],[55,'G']])}
+It rained all night the day I left, the weather it was dry
+${cl([[4,'C'],[42,'G'],[52,'C']])}
+The sun so hot I froze to death, Susanna, don't you cry
+
+Chorus:
+${cl([[0,'F'],[4,'C'],[26,'G']])}
+Oh! Susanna, oh don't you cry for me
+${cl([[6,'C'],[41,'G'],[44,'C']])}
+For I come from Alabama with my banjo on my knee
+
+{c: Chords above the lyrics are lined up automatically}`
+];
+const TEMPLATE = `{title: New Song}
+{artist: }
+{key: C}
+
+Verse 1:
+[C]Put chords in [F]brackets right be[G]fore the [C]word
+
+Chorus:
+F              C
+Or write a chord line above the lyric
+G                   C
+and it lines up on its own
+`;
+
+/* ---------- State ---------- */
+const STORE = 'chord-songbook.v1';
+const DEF = () => ({t:0, acc:'auto', fs:20, cols:false, dg:false});
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+function load(){
+  try { const s = JSON.parse(localStorage.getItem(STORE)); if (s && Array.isArray(s.songs)) return s; } catch(e){}
+  return {songs: SAMPLES.map((text, i) => ({id:'sample' + i, text, prefs:DEF()})), current:'sample0', speed:4};
+}
+let state = load();
+function save(){ try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }
+const cache = new Map();
+function parsed(song){
+  const c = cache.get(song.id);
+  if (c && c.text === song.text) return c.p;
+  const p = parseSong(song.text); cache.set(song.id, {text:song.text, p}); return p;
+}
+const current = () => state.songs.find(s => s.id === state.current) || null;
+const titleOf = s => parsed(s).meta.title || 'Untitled';
+
+/* ---------- Library ---------- */
+function renderList(){
+  const q = $('search').value.trim().toLowerCase();
+  const items = state.songs
+    .map(s => ({s, p:parsed(s)}))
+    .filter(({p}) => !q || ((p.meta.title || '') + ' ' + (p.meta.artist || '')).toLowerCase().includes(q))
+    .sort((a,b) => (a.p.meta.title || 'Untitled').localeCompare(b.p.meta.title || 'Untitled'));
+  $('songList').innerHTML = items.length ? items.map(({s,p}) => {
+    const k = p.meta.key ? prettyChord(p.meta.key) : '';
+    return `<li><button data-id="${esc(s.id)}" aria-current="${s.id === state.current}">
+      <span class="sl-title">${esc(p.meta.title || 'Untitled')}</span>
+      <span class="sl-key">${esc(k)}</span>
+      <span class="sl-artist">${esc(p.meta.artist || ' ')}</span></button></li>`;
+  }).join('') : `<li class="empty-list">${state.songs.length ? 'No songs match.' : 'No songs yet. Add one with “New song”.'}</li>`;
+}
+$('songList').addEventListener('click', e => {
+  const b = e.target.closest('button[data-id]'); if (!b) return;
+  state.current = b.dataset.id; save(); stopScroll(); $('scroller').scrollTop = 0;
+  renderAll(); closeLib();
+});
+$('search').addEventListener('input', renderList);
+
+/* ---------- View ---------- */
+function renderView(){
+  const song = current();
+  const tb = $('toolbar');
+  if (!song){
+    $('songTitle').textContent = 'Your songbook is empty';
+    $('songArtist').textContent = '';
+    $('chips').innerHTML = '';
+    tb.hidden = true; $('diagrams').hidden = true; $('editBtn').hidden = true; $('focusBtn').hidden = true;
+    $('sheet').className = 'sheet';
+    $('sheet').innerHTML = `<p class="sheet-empty">Choose “New song” to type or paste one in, or “Import file” to load a .cho or .txt chord sheet.</p>`;
+    return;
+  }
+  tb.hidden = false; $('editBtn').hidden = false; $('focusBtn').hidden = false;
+  const p = parsed(song), pr = song.prefs;
+  $('songTitle').textContent = p.meta.title || 'Untitled';
+  $('songArtist').textContent = p.meta.artist || '';
+  const sheet = $('sheet');
+  sheet.className = 'sheet' + (pr.cols ? ' cols' : '');
+  sheet.style.setProperty('--fs', pr.fs + 'px');
+  const r = renderSheet(sheet, p, pr);
+  const chips = [];
+  if (p.meta.key){
+    const k = r.tc(p.meta.key);
+    chips.push(`<span class="chip">Key <b>${esc(prettyChord(k))}</b>${pr.t ? ` · was ${esc(prettyChord(p.meta.key))}` : ''}</span>`);
+  }
+  if (p.meta.capo) chips.push(`<span class="chip">Capo <b>${esc(p.meta.capo)}</b></span>`);
+  if (p.meta.tempo) chips.push(`<span class="chip"><b>${esc(p.meta.tempo)}</b> bpm</span>`);
+  $('chips').innerHTML = chips.join('');
+  $('tVal').textContent = pr.t > 0 ? '+' + pr.t : String(pr.t);
+  $('acc').value = pr.acc;
+  $('colsBtn').setAttribute('aria-pressed', pr.cols);
+  $('dgBtn').setAttribute('aria-pressed', pr.dg);
+  const dg = $('diagrams');
+  dg.hidden = !pr.dg || !r.used.length;
+  if (pr.dg) dg.innerHTML = r.used.map(diagramCard).join('');
+}
+function renderAll(){ renderList(); renderView(); }
+function setPref(fn){ const s = current(); if (!s) return; fn(s.prefs); save(); renderView(); }
+
+$('tUp').onclick = () => setPref(p => p.t = p.t >= 11 ? -11 + (p.t - 11) : p.t + 1);
+$('tDown').onclick = () => setPref(p => p.t = p.t <= -11 ? 11 + (p.t + 11) : p.t - 1);
+$('acc').onchange = e => setPref(p => p.acc = e.target.value);
+$('fUp').onclick = () => setPref(p => p.fs = Math.min(40, p.fs + 2));
+$('fDown').onclick = () => setPref(p => p.fs = Math.max(12, p.fs - 2));
+$('colsBtn').onclick = () => setPref(p => p.cols = !p.cols);
+$('dgBtn').onclick = () => setPref(p => p.dg = !p.dg);
+
+/* Chord popover */
+const pop = $('pop');
+function closePop(){ pop.hidden = true; }
+document.addEventListener('click', e => {
+  const b = e.target.closest('.ch[data-c]');
+  if (!b){ if (!e.target.closest('#pop')) closePop(); return; }
+  pop.innerHTML = diagramCard(b.dataset.c);
+  pop.hidden = false;
+  const r = b.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = Math.min(Math.max(8, r.left - 10), innerWidth - w - 8);
+  let top = r.bottom + 6; if (top + h > innerHeight - 8) top = r.top - h - 6;
+  pop.style.left = left + 'px'; pop.style.top = top + 'px';
+});
+$('scroller').addEventListener('scroll', () => { if (!scrolling) closePop(); }, {passive:true});
+
+/* Auto-scroll */
+let scrolling = false, last = null, accum = 0;
+const speedEl = $('speed');
+speedEl.value = state.speed || 4;
+speedEl.oninput = () => { state.speed = +speedEl.value; save(); };
+function step(ts){
+  if (!scrolling) return;
+  const sc = $('scroller');
+  if (last !== null){
+    const v = +speedEl.value;
+    accum += (6 + v * v * 1.6) * (ts - last) / 1000;
+    const whole = Math.floor(accum);
+    if (whole > 0){ sc.scrollTop += whole; accum -= whole; }
+    if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 1){ stopScroll(); return; }
+  }
+  last = ts; requestAnimationFrame(step);
+}
+function startScroll(){ scrolling = true; last = null; accum = 0; closePop(); $('scrollBtn').textContent = '❚❚ Pause'; $('scrollBtn').setAttribute('aria-pressed','true'); requestAnimationFrame(step); updateWake(); }
+function stopScroll(){ scrolling = false; $('scrollBtn').textContent = '▶ Auto-scroll'; $('scrollBtn').setAttribute('aria-pressed','false'); updateWake(); }
+$('scrollBtn').onclick = () => scrolling ? stopScroll() : startScroll();
+
+/* Focus mode */
+function setFocus(on){
+  $('app').classList.toggle('focus', on);
+  $('focusBtn').setAttribute('aria-pressed', on);
+  updateWake();
+  try {
+    if (on && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    else if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  } catch(e){}
+}
+$('focusBtn').onclick = () => setFocus(!$('app').classList.contains('focus'));
+
+/* Mobile drawer */
+function openLib(){ $('lib').classList.add('open'); $('scrim').classList.add('show'); }
+function closeLib(){ $('lib').classList.remove('open'); $('scrim').classList.remove('show'); }
+$('openLib').onclick = openLib; $('closeLib').onclick = closeLib; $('scrim').onclick = closeLib;
+
+/* ---------- Editor ---------- */
+let editing = null, previewTimer = null, armTimer = null;
+function openEditor(song, isNew){
+  stopScroll(); closePop(); closeLib();
+  editing = {song, isNew};
+  $('src').value = song.text;
+  $('editHeading').textContent = isNew ? 'New song' : 'Edit song';
+  $('deleteBtn').hidden = isNew;
+  disarm();
+  $('viewMode').hidden = true; $('editMode').hidden = false;
+  renderPreview();
+  $('src').focus();
+}
+function closeEditor(){ editing = null; $('editMode').hidden = true; $('viewMode').hidden = false; renderAll(); }
+function renderPreview(){
+  const p = parseSong($('src').value);
+  $('prevTitle').textContent = p.meta.title || 'Untitled';
+  renderSheet($('preview'), p, DEF());
+}
+$('src').addEventListener('input', () => { clearTimeout(previewTimer); previewTimer = setTimeout(renderPreview, 120); });
+$('src').addEventListener('keydown', e => {
+  if (e.key === 'Tab'){ e.preventDefault(); const t = e.target, s = t.selectionStart; t.setRangeText('    ', s, t.selectionEnd, 'end'); renderPreview(); }
+});
+$('editBtn').onclick = () => { const s = current(); if (s) openEditor(s, false); };
+$('newSong').onclick = () => openEditor({id:uid(), text:TEMPLATE, prefs:DEF()}, true);
+$('cancelBtn').onclick = closeEditor;
+$('saveBtn').onclick = () => {
+  const {song, isNew} = editing;
+  song.text = $('src').value;
+  if (isNew) state.songs.push(song);
+  state.current = song.id; save();
+  $('scroller').scrollTop = 0;
+  closeEditor(); toast('Saved');
+};
+function disarm(){ clearTimeout(armTimer); const b = $('deleteBtn'); b.classList.remove('armed'); b.textContent = 'Delete'; }
+$('deleteBtn').onclick = () => {
+  const b = $('deleteBtn');
+  if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Click again to delete'; armTimer = setTimeout(disarm, 3500); return; }
+  disarm();
+  const id = editing.song.id;
+  state.songs = state.songs.filter(s => s.id !== id);
+  cache.delete(id);
+  if (state.current === id){
+    const sorted = state.songs.slice().sort((a,b) => titleOf(a).localeCompare(titleOf(b)));
+    state.current = sorted[0] ? sorted[0].id : null;
+  }
+  save(); closeEditor(); toast('Song deleted');
+};
+$('copyBtn').onclick = () => {
+  const txt = $('src').value;
+  const fallback = () => { $('src').focus(); $('src').select(); toast('Text selected. Press Ctrl+C (⌘C) to copy'); };
+  try { navigator.clipboard.writeText(txt).then(() => toast('Song text copied'), fallback); } catch(e){ fallback(); }
+};
+
+/* Import */
+$('importBtn').onclick = () => $('importFile').click();
+$('importFile').onchange = async e => {
+  const files = [...e.target.files]; let n = 0, dup = 0, lastId = null;
+  for (const f of files){
+    try {
+      let text = await f.text();
+      if (/\.json$/i.test(f.name) || /^\s*\{\s*"songbook"/.test(text)){
+        const data = JSON.parse(text);
+        const have = new Set(state.songs.map(s => s.text));
+        for (const t of (data.songs || [])){
+          if (typeof t.text !== 'string') continue;
+          if (have.has(t.text)){ dup++; continue; }
+          const s = {id:uid(), text:t.text, prefs:Object.assign(DEF(), t.prefs || {})};
+          state.songs.push(s); lastId = s.id; n++;
+        }
+        continue;
+      }
+      if (!/\{\s*(title|t)\s*:/i.test(text)) text = `{title: ${f.name.replace(/\.[^.]+$/,'')}}\n` + text;
+      const s = {id:uid(), text, prefs:DEF()}; state.songs.push(s); lastId = s.id; n++;
+    } catch(err){}
+  }
+  e.target.value = '';
+  try { cache.clear(); } catch(_){}
+  if (lastId){ state.current = lastId; save(); renderAll(); closeLib(); }
+  toast(n ? `Imported ${n} song${n > 1 ? 's' : ''}` + (dup ? ` (${dup} already here)` : '') : dup ? 'Those songs are already in your songbook' : 'Could not read that file');
+};
+
+/* Backup */
+$('backupBtn').onclick = () => {
+  const data = JSON.stringify({songbook:1, exported:new Date().toISOString(), songs:state.songs.map(s => ({text:s.text, prefs:s.prefs}))}, null, 2);
+  try {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
+    a.download = 'songbook-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Backup saved to Downloads');
+  } catch(e){ toast('Could not save the backup file'); }
+};
+
+/* Keep the screen on while scrolling or in Focus mode */
+let wakeLock = null;
+async function updateWake(){
+  const want = scrolling || $('app').classList.contains('focus');
+  try {
+    if (want && !wakeLock && navigator.wakeLock && document.visibilityState === 'visible'){
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!want && wakeLock){ await wakeLock.release(); wakeLock = null; }
+  } catch(e){ wakeLock = null; }
+}
+document.addEventListener('visibilitychange', updateWake);
+
+/* Page-turner pedals and arrow keys: move one screen at a time */
+function page(dir){
+  const sc = $('scroller');
+  sc.scrollBy({top: dir * sc.clientHeight * 0.8, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+}
+
+/* Keyboard */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ closePop(); closeLib(); if ($('app').classList.contains('focus')) setFocus(false); return; }
+  if (editing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target.closest('input,textarea,select')) return;
+  if (e.key === ' ' && !e.target.closest('button')){ e.preventDefault(); if (current()) (scrolling ? stopScroll() : startScroll()); }
+  else if (e.key === '+' || e.key === '='){ $('tUp').click(); }
+  else if (e.key === '-' || e.key === '_'){ $('tDown').click(); }
+  else if (['PageDown','ArrowDown','ArrowRight'].includes(e.key)){ e.preventDefault(); page(1); }
+  else if (['PageUp','ArrowUp','ArrowLeft'].includes(e.key)){ e.preventDefault(); page(-1); }
+});
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && $('app').classList.contains('focus')){ $('app').classList.remove('focus'); $('focusBtn').setAttribute('aria-pressed','false'); }
+});
+
+let toastTimer;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200); }
+
+if (!current() && state.songs.length) state.current = state.songs[0].id;
+renderAll();
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+})();
+</script>
+</body>
+</html>
