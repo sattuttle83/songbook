@@ -175,10 +175,26 @@ input[type=range]{accent-color:var(--accent);width:88px}
 .modal-foot{display:flex;gap:8px;align-items:center}
 #lenVal{width:4.4em;text-align:center;border:1px solid var(--line);border-radius:8px;padding:7px 4px;background:var(--surface);font-family:var(--f-chord);font-variant-numeric:tabular-nums}
 
+/* Folders */
+.fchips{display:flex;flex-wrap:wrap;gap:6px}
+.fchip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:.82rem;font-weight:700;color:var(--muted);cursor:pointer;line-height:1.2}
+.fchip b{font-family:var(--f-chord);font-weight:500;margin-left:4px;font-size:.78rem}
+.fchip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.ftags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ftags:empty{display:none}
+.ftag{border:0;font-size:.75rem;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 10px;font-weight:700;cursor:pointer}
+.fm-sub{margin:0;color:var(--muted);font-size:.9rem}
+.fm-new{display:flex;gap:8px}
+#fmNew{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.fm-err{margin:0;color:var(--danger);font-size:.85rem}
+#fmList li{display:flex;align-items:center;gap:6px}
+#fmList label{flex:1}
+.fm-del.armed{background:var(--danger);border-color:var(--danger);color:var(--surface)}
+
 /* Stage mode: one high-contrast look for dark stages, editing locked away */
 :root.stage{--bg:#000;--surface:#0e0e0e;--ink:#ffffff;--muted:#c2c2c2;--line:#2e2e2e;--accent:#ffd43b;--accent-soft:#2b2410;--danger:#ff8a80;color-scheme:dark}
 .stage .app{grid-template-columns:minmax(0,1fr)}
-.stage .lib,.stage .scrim,.stage #openLib,.stage #editBtn,.stage #focusBtn,.stage #diagrams,.stage #endSet{display:none !important}
+.stage .lib,.stage .scrim,.stage #openLib,.stage #editBtn,.stage #folderBtn,.stage #focusBtn,.stage #diagrams,.stage #endSet{display:none !important}
 .stage .toolbar > .tg:not(#scrollGroup){display:none}
 .stage #scrollGroup > :not(#scrollBtn){display:none}
 .stage #scrollBtn{min-height:48px;font-size:1rem;padding:10px 20px}
@@ -202,6 +218,10 @@ input[type=range]{accent-color:var(--accent);width:88px}
   .song-head{padding:16px 16px 10px}
   .toolbar{padding:8px 16px;gap:8px 12px}
   .setbar{padding:10px 16px;flex-wrap:wrap}
+  .tg{flex-wrap:wrap;min-width:0}
+  .toolbar{min-width:0}
+  .main{overflow-x:hidden}
+  .modal-card{max-width:100%}
   .tg.end{margin-left:0}
   .scroller{padding:18px 16px 45vh}
   .edit-grid{grid-template-columns:minmax(0,1fr);overflow:auto}
@@ -213,7 +233,8 @@ input[type=range]{accent-color:var(--accent);width:88px}
   .btn{min-height:42px;padding:8px 14px}
   .btn.sq{width:44px;height:44px}
   select{min-height:42px}
-  #search,select,#src,#pickSearch,#lenVal,#setName{font-size:16px}
+  #search,select,#src,#pickSearch,#lenVal,#setName,#fmNew{font-size:16px}
+  .fchip{padding:8px 13px}
   #lenVal{min-height:42px}
   .set-songs .btn.sq{width:44px;height:34px;min-height:0;padding:0}
   input[type=range]{width:120px}
@@ -236,6 +257,7 @@ input[type=range]{accent-color:var(--accent);width:88px}
     </div>
     <div class="pane" id="paneSongs" role="tabpanel" aria-labelledby="tabSongs">
       <input id="search" type="search" placeholder="Search title or artist" aria-label="Search songs">
+      <div class="fchips" id="folderChips" role="group" aria-label="Filter by folder"></div>
       <div class="lib-actions">
         <button class="btn primary" id="newSong">+ New song</button>
         <button class="btn" id="importBtn">Import</button>
@@ -274,9 +296,11 @@ input[type=range]{accent-color:var(--accent);width:88px}
         <div class="titles">
           <h1 id="songTitle">Untitled</h1>
           <p class="artist" id="songArtist"></p>
+          <div class="ftags" id="ftags"></div>
         </div>
         <div class="chips" id="chips"></div>
         <div class="tg">
+          <button class="btn" id="folderBtn">Folders</button>
           <button class="btn" id="stageBtn" aria-pressed="false">Stage</button>
           <button class="btn" id="focusBtn" aria-pressed="false">Focus</button>
           <button class="btn primary" id="editBtn">Edit</button>
@@ -363,8 +387,19 @@ Amazing grace</dt><dd>Or paste a chord line above a lyric line; columns line up 
   <div class="modal-card">
     <strong id="pickTitle">Add songs</strong>
     <input id="pickSearch" type="search" placeholder="Search title or artist" aria-label="Search songs to add">
+    <div class="fchips" id="pickChips" role="group" aria-label="Filter by folder"></div>
     <ul class="pick-list" id="pickList"></ul>
     <div class="modal-foot"><span class="spacer"></span><button class="btn" id="pickCancel">Cancel</button><button class="btn primary" id="pickDone">Add</button></div>
+  </div>
+</div>
+<div class="modal" id="folderModal" hidden role="dialog" aria-modal="true" aria-labelledby="fmTitle">
+  <div class="modal-card">
+    <strong id="fmTitle">Folders</strong>
+    <p class="fm-sub" id="fmSub"></p>
+    <ul class="pick-list" id="fmList"></ul>
+    <div class="fm-new"><input id="fmNew" type="text" placeholder="New folder name" aria-label="New folder name" autocomplete="off"><button class="btn" id="fmAdd">Add folder</button></div>
+    <p class="fm-err" id="fmErr" hidden>Type a folder name first</p>
+    <div class="modal-foot"><span class="spacer"></span><button class="btn" id="fmSkip">Skip</button><button class="btn primary" id="fmDone">Done</button></div>
   </div>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -683,6 +718,9 @@ function load(){
 let state = load();
 if (!Array.isArray(state.setlists)) state.setlists = [];
 if (!state.play) state.play = null;
+if (!Array.isArray(state.folders)) state.folders = [];
+if (!state.folderMap || typeof state.folderMap !== 'object') state.folderMap = {};
+if (!state.filter) state.filter = 'All';
 function save(){ try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }
 const cache = new Map();
 function parsed(song){
@@ -696,8 +734,11 @@ const titleOf = s => parsed(s).meta.title || 'Untitled';
 /* ---------- Library ---------- */
 function renderList(){
   const q = $('search').value.trim().toLowerCase();
+  if (state.filter !== 'All' && !state.folders.includes(state.filter)) state.filter = 'All';
+  $('folderChips').innerHTML = chipsHtml(state.filter);
   const items = state.songs
     .map(s => ({s, p:parsed(s)}))
+    .filter(({s}) => inFolder(s, state.filter))
     .filter(({p}) => !q || ((p.meta.title || '') + ' ' + (p.meta.artist || '')).toLowerCase().includes(q))
     .sort((a,b) => (a.p.meta.title || 'Untitled').localeCompare(b.p.meta.title || 'Untitled'));
   $('songList').innerHTML = items.length ? items.map(({s,p}) => {
@@ -706,7 +747,7 @@ function renderList(){
       <span class="sl-title">${esc(p.meta.title || 'Untitled')}</span>
       <span class="sl-key">${esc(k)}</span>
       <span class="sl-artist">${esc(p.meta.artist || ' ')}</span></button></li>`;
-  }).join('') : `<li class="empty-list">${state.songs.length ? 'No songs match.' : 'No songs yet. Add one with “New song”.'}</li>`;
+  }).join('') : `<li class="empty-list">${!state.songs.length ? 'No songs yet. Add one with “New song”.' : state.filter !== 'All' && !q ? 'This folder is empty. Open a song and tap “Folders” to add it.' : 'No songs match.'}</li>`;
 }
 $('songList').addEventListener('click', e => {
   const b = e.target.closest('button[data-id]'); if (!b) return;
@@ -720,6 +761,7 @@ $('songList').addEventListener('click', e => {
   renderAll(); closeLib();
 });
 $('search').addEventListener('input', renderList);
+$('folderChips').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; state.filter = b.dataset.f; save(); renderList(); });
 
 /* ---------- View ---------- */
 function renderView(){
@@ -738,12 +780,13 @@ function renderView(){
     $('songTitle').textContent = 'Your songbook is empty';
     $('songArtist').textContent = '';
     $('chips').innerHTML = '';
-    tb.hidden = true; $('diagrams').hidden = true; $('editBtn').hidden = true; $('focusBtn').hidden = true;
+    tb.hidden = true; $('diagrams').hidden = true; $('editBtn').hidden = true; $('focusBtn').hidden = true; $('folderBtn').hidden = true; $('ftags').innerHTML = '';
     $('sheet').className = 'sheet';
     $('sheet').innerHTML = `<p class="sheet-empty">Choose “New song” to type or paste one in, or “Import file” to load a .cho or .txt chord sheet.</p>`;
     return;
   }
-  tb.hidden = false; $('editBtn').hidden = false; $('focusBtn').hidden = false;
+  tb.hidden = false; $('editBtn').hidden = false; $('focusBtn').hidden = false; $('folderBtn').hidden = false;
+  $('ftags').innerHTML = foldersOf(song).map(f => `<button class="ftag" data-f="${esc(f)}" aria-label="Show folder ${esc(f)}">${esc(f)}</button>`).join('');
   const p = parsed(song), pr = song.prefs;
   $('songTitle').textContent = p.meta.title || 'Untitled';
   $('songArtist').textContent = p.meta.artist || '';
@@ -868,8 +911,16 @@ $('newSong').onclick = () => openEditor({id:uid(), text:TEMPLATE, prefs:DEF()}, 
 $('cancelBtn').onclick = closeEditor;
 $('saveBtn').onclick = () => {
   const {song, isNew} = editing;
+  const oldKey = isNew ? null : sKey(song);
   song.text = $('src').value;
   if (isNew) state.songs.push(song);
+  const newKey = sKey(song);
+  if (oldKey && oldKey !== newKey){
+    if (state.folderMap[oldKey]){ state.folderMap[newKey] = state.folderMap[oldKey]; delete state.folderMap[oldKey]; }
+    const m = parsed(song).meta;
+    state.setlists.forEach(sl => sl.items.forEach(it => { if (it.k === oldKey){ it.k = newKey; it.t = m.title || 'Untitled'; it.a = m.artist || ''; } }));
+  }
+  if (isNew && state.filter !== 'All') setFolders(song, [...new Set([...foldersOf(song), state.filter])]);
   state.current = song.id; save();
   $('scroller').scrollTop = 0;
   closeEditor(); toast('Saved');
@@ -918,7 +969,7 @@ function addOrUpdate(text, prefs){
 /* Import */
 $('importBtn').onclick = () => $('importFile').click();
 $('importFile').onchange = async e => {
-  const files = [...e.target.files]; let n = 0, upd = 0, dup = 0, sets = 0, lastId = null; removedDupes = 0;
+  const files = [...e.target.files]; let n = 0, upd = 0, dup = 0, sets = 0, lastId = null, fromBackup = false; removedDupes = 0; const touched = [];
   for (const f of files){
     try {
       let text = await f.text();
@@ -928,7 +979,19 @@ $('importFile').onchange = async e => {
           if (typeof t.text !== 'string') continue;
           const r = addOrUpdate(t.text, t.prefs);
           if (r.status === 'new') n++; else if (r.status === 'updated') upd++; else dup++;
-          lastId = r.id;
+          lastId = r.id; touched.push(r.id);
+        }
+        if (Array.isArray(data.folders)){
+          fromBackup = true;
+          for (const f of data.folders) if (typeof f === 'string' && f.trim() && !folderNamed(f)) state.folders.push(f.trim());
+        }
+        if (data.folderMap && typeof data.folderMap === 'object'){
+          fromBackup = true;
+          for (const [k, list] of Object.entries(data.folderMap)){
+            if (!Array.isArray(list)) continue;
+            const names = list.map(f => folderNamed(f)).filter(Boolean);
+            if (names.length) state.folderMap[k] = [...new Set([...(state.folderMap[k] || []), ...names])];
+          }
         }
         if (Array.isArray(data.setlists)) for (const sl of data.setlists){
           if (!sl || !Array.isArray(sl.items)) continue;
@@ -941,7 +1004,7 @@ $('importFile').onchange = async e => {
         continue;
       }
       if (!/\{\s*(title|t)\s*:/i.test(text)) text = `{title: ${f.name.replace(/\.[^.]+$/,'')}}\n` + text;
-      const r = addOrUpdate(text); lastId = r.id;
+      const r = addOrUpdate(text); lastId = r.id; touched.push(r.id);
       if (r.status === 'new') n++; else if (r.status === 'updated') upd++; else dup++;
     } catch(err){}
   }
@@ -955,11 +1018,12 @@ $('importFile').onchange = async e => {
   if (sets) parts.push(`${sets} setlist${sets > 1 ? 's' : ''}`);
   if (removedDupes) parts.push(`removed ${removedDupes} extra cop${removedDupes > 1 ? 'ies' : 'y'}`);
   toast(parts.length ? parts.join(', ').replace(/^./, c => c.toUpperCase()) : 'Could not read that file');
+  if (touched.length && !fromBackup) setTimeout(() => openFolderModal('import', [...new Set(touched)]), 400);
 };
 
 /* Backup */
 $('backupBtn').onclick = () => {
-  const data = JSON.stringify({songbook:1, exported:new Date().toISOString(), songs:state.songs.map(s => ({text:s.text, prefs:s.prefs})), setlists:state.setlists.map(s => ({name:s.name, items:s.items}))}, null, 2);
+  const data = JSON.stringify({songbook:1, exported:new Date().toISOString(), songs:state.songs.map(s => ({text:s.text, prefs:s.prefs})), setlists:state.setlists.map(s => ({name:s.name, items:s.items})), folders:state.folders, folderMap:state.folderMap}, null, 2);
   try {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
@@ -1135,10 +1199,11 @@ $('nextSong').onclick = () => setStep(1);
 $('endSet').onclick = () => { state.play = null; save(); renderAll(); };
 
 /* Song picker */
-let picked = [];
+let picked = [], pickFilter = 'All';
+$('pickChips').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; pickFilter = b.dataset.f; renderPicker(); });
 function openPicker(){
   const s = getSet(openSetId); if (!s) return;
-  picked = []; $('pickSearch').value = ''; $('pickTitle').textContent = `Add songs to ${s.name}`;
+  picked = []; pickFilter = state.filter; $('pickSearch').value = ''; $('pickTitle').textContent = `Add songs to ${s.name}`;
   renderPicker(); $('picker').hidden = false; closeLib(); $('pickSearch').focus();
 }
 function renderPicker(){
@@ -1146,8 +1211,10 @@ function renderPicker(){
   const inSet = new Set(s.items.map(it => it.k));
   const q = $('pickSearch').value.trim().toLowerCase();
   const items = state.songs.map(x => ({x, m:parsed(x).meta, k:sKey(x)}))
+    .filter(({x}) => inFolder(x, pickFilter))
     .filter(({m}) => !q || ((m.title || '') + ' ' + (m.artist || '')).toLowerCase().includes(q))
     .sort((a,b) => (a.m.title || '').localeCompare(b.m.title || ''));
+  $('pickChips').innerHTML = chipsHtml(pickFilter);
   $('pickList').innerHTML = items.length ? items.map(({x,m,k}) => {
     const already = inSet.has(k), o = picked.indexOf(x.id);
     return `<li><label><input type="checkbox" data-id="${esc(x.id)}"${already || o >= 0 ? ' checked' : ''}${already ? ' disabled' : ''}>
@@ -1186,6 +1253,93 @@ $('pickDone').onclick = () => {
   if (matchMedia('(max-width: 760px)').matches) openLib();
 };
 
+/* ---------- Folders (stored by title + artist, so they survive re-imports) ---------- */
+const folderNamed = name => state.folders.find(f => f.toLowerCase() === String(name).trim().toLowerCase()) || null;
+const foldersOf = song => (state.folderMap[sKey(song)] || []).filter(f => state.folders.includes(f));
+function setFolders(song, list){ const k = sKey(song); if (list.length) state.folderMap[k] = list; else delete state.folderMap[k]; }
+const inFolder = (song, f) => f === 'All' || foldersOf(song).includes(f);
+function folderCount(f){ return state.songs.filter(s => inFolder(s, f)).length; }
+function chipsHtml(active){
+  if (!state.folders.length) return '';
+  return ['All', ...state.folders].map(f => `<button class="fchip" data-f="${esc(f)}" aria-pressed="${f === active}">${esc(f)}<b>${folderCount(f)}</b></button>`).join('');
+}
+$('ftags').addEventListener('click', e => {
+  const b = e.target.closest('[data-f]'); if (!b || state.stage) return;
+  state.filter = b.dataset.f; save(); setTab('songs'); renderList(); openLib();
+});
+let fm = {mode:'song', ids:[], pick:new Set()};
+function openFolderModal(mode, ids){
+  fm = {mode, ids: ids || [], pick:new Set()};
+  closePop(); closeLib();
+  $('fmNew').value = ''; $('fmErr').hidden = true;
+  if (mode === 'song'){
+    const s = current(); if (!s) return;
+    $('fmTitle').textContent = `Folders for ${parsed(s).meta.title || 'this song'}`;
+    $('fmSub').textContent = 'Tick every folder this song belongs in.';
+    $('fmSkip').hidden = true; $('fmDone').textContent = 'Done';
+  } else {
+    $('fmTitle').textContent = `File ${ids.length} imported song${ids.length > 1 ? 's' : ''}?`;
+    $('fmSub').textContent = 'Tick one or more folders to put them all in, or skip.';
+    $('fmSkip').hidden = false; $('fmDone').textContent = 'File songs';
+  }
+  renderFolderModal(); $('folderModal').hidden = false;
+}
+function renderFolderModal(){
+  const song = fm.mode === 'song' ? current() : null;
+  const mine = song ? foldersOf(song) : [];
+  $('fmList').innerHTML = state.folders.length ? state.folders.map(f => {
+    const on = song ? mine.includes(f) : fm.pick.has(f);
+    return `<li><label><input type="checkbox" data-f="${esc(f)}"${on ? ' checked' : ''}><span class="sl-title">${esc(f)}</span><span class="po">${folderCount(f)}</span></label>${song ? `<button class="btn sq fm-del" data-del="${esc(f)}" aria-label="Delete folder ${esc(f)}">✕</button>` : ''}</li>`;
+  }).join('') : '<li class="empty-list">No folders yet. Name your first one below.</li>';
+}
+$('fmList').addEventListener('change', e => {
+  const c = e.target.closest('input[data-f]'); if (!c) return;
+  const f = c.dataset.f;
+  if (fm.mode === 'song'){
+    const s = current(); if (!s) return;
+    const list = foldersOf(s);
+    setFolders(s, c.checked ? [...new Set([...list, f])] : list.filter(x => x !== f));
+    save(); renderList(); renderView(); renderFolderModal();
+  } else { c.checked ? fm.pick.add(f) : fm.pick.delete(f); }
+});
+let fmDelTimer = null;
+$('fmList').addEventListener('click', e => {
+  const b = e.target.closest('[data-del]'); if (!b) return;
+  if (!b.classList.contains('armed')){
+    $('fmList').querySelectorAll('.fm-del.armed').forEach(x => { x.classList.remove('armed'); x.textContent = '✕'; });
+    b.classList.add('armed'); b.textContent = 'Delete?'; clearTimeout(fmDelTimer);
+    fmDelTimer = setTimeout(() => { b.classList.remove('armed'); b.textContent = '✕'; }, 3500); return;
+  }
+  const f = b.dataset.del;
+  state.folders = state.folders.filter(x => x !== f);
+  for (const k of Object.keys(state.folderMap)){ state.folderMap[k] = state.folderMap[k].filter(x => x !== f); if (!state.folderMap[k].length) delete state.folderMap[k]; }
+  if (state.filter === f) state.filter = 'All';
+  save(); renderAll(); renderFolderModal(); toast(`Folder “${f}” deleted. Its songs are still in your songbook`);
+});
+function addFolderFromInput(){
+  const name = $('fmNew').value.trim();
+  if (!name){ $('fmErr').hidden = false; $('fmNew').focus(); return; }
+  const f = folderNamed(name) || (state.folders.push(name), name);
+  if (fm.mode === 'song'){ const s = current(); if (s) setFolders(s, [...new Set([...foldersOf(s), f])]); }
+  else fm.pick.add(f);
+  $('fmNew').value = ''; save(); renderAll(); renderFolderModal();
+}
+$('fmAdd').onclick = addFolderFromInput;
+$('fmNew').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addFolderFromInput(); } });
+$('fmNew').addEventListener('input', () => { $('fmErr').hidden = true; });
+$('fmSkip').onclick = () => { $('folderModal').hidden = true; };
+$('fmDone').onclick = () => {
+  if (fm.mode === 'import' && fm.pick.size){
+    const songs = fm.ids.map(id => state.songs.find(s => s.id === id)).filter(Boolean);
+    songs.forEach(s => setFolders(s, [...new Set([...foldersOf(s), ...fm.pick])]));
+    save(); renderAll();
+    toast(`Filed ${songs.length} song${songs.length > 1 ? 's' : ''} in ${[...fm.pick].join(', ')}`);
+  }
+  $('folderModal').hidden = true;
+};
+$('folderModal').addEventListener('click', e => { if (e.target === $('folderModal')) $('folderModal').hidden = true; });
+$('folderBtn').onclick = () => openFolderModal('song');
+
 /* ---------- Stage mode ---------- */
 let stageTimer = null;
 function applyStage(){
@@ -1204,8 +1358,8 @@ $('stageBtn').onclick = () => {
 
 /* Keyboard */
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape'){ closePop(); closeLib(); $('picker').hidden = true; if ($('app').classList.contains('focus')) setFocus(false); return; }
-  if (editing || !$('picker').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'Escape'){ closePop(); closeLib(); $('picker').hidden = true; $('folderModal').hidden = true; if ($('app').classList.contains('focus')) setFocus(false); return; }
+  if (editing || !$('picker').hidden || !$('folderModal').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.target.closest('input,textarea,select')) return;
   if (e.key === ' ' && !e.target.closest('button')){ e.preventDefault(); if (current()) (scrolling ? stopScroll() : startScroll()); }
   else if (e.key === '+' || e.key === '='){ $('tUp').click(); }
