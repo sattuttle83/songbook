@@ -103,6 +103,7 @@ input[type=range]{accent-color:var(--accent);width:88px}
 .label{font-family:var(--f-display);font-weight:700;font-size:.68em;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 .25em}
 .line{display:flex;flex-wrap:wrap;align-items:flex-end;line-height:1.35}
 .line.plain{display:block;white-space:pre-wrap}
+.wd{display:inline-flex;align-items:flex-end}
 .seg{display:inline-flex;flex-direction:column}
 .ch{font-family:var(--f-chord);font-weight:700;color:var(--accent);font-size:.8em;padding:0 .5em 0 0;line-height:1.35;white-space:pre;border:0;background:none;text-align:left;cursor:pointer;border-radius:3px}
 .ch:hover{text-decoration:underline;text-underline-offset:3px}
@@ -110,6 +111,7 @@ input[type=range]{accent-color:var(--accent);width:88px}
 .ch.blank{visibility:hidden;width:0;padding:0;overflow:hidden}
 .ly{white-space:pre;min-height:1.35em}
 .chords-only .seg{margin-right:1.1em}
+.chords-only .wd{display:contents}
 .chords-only .ly{display:none}
 .sheet-empty{color:var(--muted);font-size:1rem;max-width:36em}
 
@@ -489,6 +491,7 @@ function renderSheet(el, p, prefs, opts){
     const has = l.segs.some(s => s.chord);
     if (!has){ cur.html += `<div class="line plain">${esc(l.segs.map(s => s.text).join('')) || '&nbsp;'}</div>`; continue; }
     let h = `<div class="line${l.only ? ' chords-only' : ''}">`;
+    let open1 = false;
     for (const s of l.segs){
       let chHtml;
       if (!s.chord) chHtml = `<span class="ch blank" aria-hidden="true">·</span>`;
@@ -498,8 +501,13 @@ function renderSheet(el, p, prefs, opts){
         chHtml = ok ? `<button type="button" class="ch" data-c="${esc(c)}">${esc(prettyChord(c))}</button>`
                     : `<span class="ch na">${esc(s.chord)}</span>`;
       }
+      const prev = l.segs[l.segs.indexOf(s) - 1];
+      const joins = prev && prev.text && !/\s$/.test(prev.text) && s.text && !/^\s/.test(s.text);
+      if (!joins && open1){ h += '</span>'; open1 = false; }
+      if (!open1){ h += '<span class="wd">'; open1 = true; }
       h += `<span class="seg">${chHtml}<span class="ly">${esc(s.text)}</span></span>`;
     }
+    if (open1) h += '</span>';
     cur.html += h + '</div>';
   }
   el.innerHTML = stanzas.filter(s => s.html).map(s => `<div class="stanza${s.chorus ? ' chorus' : ''}">${s.html}</div>`).join('')
