@@ -185,7 +185,10 @@ input[type=range]{accent-color:var(--accent);width:88px}
       <input type="file" id="importFile" accept=".cho,.chordpro,.chopro,.crd,.pro,.txt,.json,text/plain,application/json" multiple hidden>
     </div>
     <ul class="song-list" id="songList"></ul>
-    <button class="btn" id="backupBtn">Back up all songs</button>
+    <div class="lib-actions">
+      <button class="btn" id="backupBtn">Back up all songs</button>
+      <button class="btn danger" id="clearBtn">Delete all</button>
+    </div>
     <p class="lib-foot">Songs are saved on this device. “Back up all songs” saves a file you can import on another device.</p>
   </aside>
   <div class="scrim" id="scrim"></div>
@@ -775,9 +778,18 @@ $('copyBtn').onclick = () => {
 
 /* Import: a song with the same title and artist is replaced, not duplicated */
 const songKey = text => { const m = parseSong(text).meta; return ((m.title || '') + '|' + (m.artist || '')).toLowerCase().replace(/[^a-z0-9|]+/g, ''); };
+let removedDupes = 0;
 function addOrUpdate(text, prefs){
   const key = songKey(text);
-  const ex = key !== '|' && state.songs.find(s => songKey(s.text) === key);
+  const matches = key === '|' ? [] : state.songs.filter(s => songKey(s.text) === key);
+  const ex = matches[0];
+  if (matches.length > 1){
+    const extra = new Set(matches.slice(1).map(s => s.id));
+    state.songs = state.songs.filter(s => !extra.has(s.id));
+    extra.forEach(id => cache.delete(id));
+    if (extra.has(state.current)) state.current = ex.id;
+    removedDupes += extra.size;
+  }
   if (ex){
     if (ex.text === text) return {status:'same', id:ex.id};
     ex.text = text; cache.delete(ex.id); return {status:'updated', id:ex.id};
@@ -788,7 +800,7 @@ function addOrUpdate(text, prefs){
 /* Import */
 $('importBtn').onclick = () => $('importFile').click();
 $('importFile').onchange = async e => {
-  const files = [...e.target.files]; let n = 0, upd = 0, dup = 0, lastId = null;
+  const files = [...e.target.files]; let n = 0, upd = 0, dup = 0, lastId = null; removedDupes = 0;
   for (const f of files){
     try {
       let text = await f.text();
@@ -814,6 +826,7 @@ $('importFile').onchange = async e => {
   if (n) parts.push(`Added ${n} song${n > 1 ? 's' : ''}`);
   if (upd) parts.push(`updated ${upd}`);
   if (dup) parts.push(`${dup} already up to date`);
+  if (removedDupes) parts.push(`removed ${removedDupes} extra cop${removedDupes > 1 ? 'ies' : 'y'}`);
   toast(parts.length ? parts.join(', ').replace(/^./, c => c.toUpperCase()) : 'Could not read that file');
 };
 
@@ -828,6 +841,22 @@ $('backupBtn').onclick = () => {
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     toast('Backup saved to Downloads');
   } catch(e){ toast('Could not save the backup file'); }
+};
+
+/* Delete all songs (tap twice) */
+let clearTimer = null;
+function disarmClear(){ clearTimeout(clearTimer); const b = $('clearBtn'); b.classList.remove('armed'); b.textContent = 'Delete all'; }
+$('clearBtn').onclick = () => {
+  const b = $('clearBtn');
+  if (!state.songs.length){ toast('Your songbook is already empty'); return; }
+  if (!b.classList.contains('armed')){
+    b.classList.add('armed'); b.textContent = `Tap again: delete ${state.songs.length}`;
+    clearTimer = setTimeout(disarmClear, 4000); return;
+  }
+  disarmClear(); stopScroll();
+  const count = state.songs.length;
+  state.songs = []; state.current = null; cache.clear(); save(); renderAll();
+  toast(`Deleted ${count} songs`);
 };
 
 /* Keep the screen on while scrolling or in Focus mode */
