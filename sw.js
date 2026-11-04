@@ -1,6 +1,6 @@
 // Offline support: keeps the app and its fonts cached on the iPad.
 // Bump the version when you change index.html so devices pick up the new copy.
-const CACHE = 'songbook-v2';
+const CACHE = 'songbook-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

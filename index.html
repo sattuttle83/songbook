@@ -773,32 +773,48 @@ $('copyBtn').onclick = () => {
   try { navigator.clipboard.writeText(txt).then(() => toast('Song text copied'), fallback); } catch(e){ fallback(); }
 };
 
+/* Import: a song with the same title and artist is replaced, not duplicated */
+const songKey = text => { const m = parseSong(text).meta; return ((m.title || '') + '|' + (m.artist || '')).toLowerCase().replace(/[^a-z0-9|]+/g, ''); };
+function addOrUpdate(text, prefs){
+  const key = songKey(text);
+  const ex = key !== '|' && state.songs.find(s => songKey(s.text) === key);
+  if (ex){
+    if (ex.text === text) return {status:'same', id:ex.id};
+    ex.text = text; cache.delete(ex.id); return {status:'updated', id:ex.id};
+  }
+  const s = {id:uid(), text, prefs:Object.assign(DEF(), prefs || {})};
+  state.songs.push(s); return {status:'new', id:s.id};
+}
 /* Import */
 $('importBtn').onclick = () => $('importFile').click();
 $('importFile').onchange = async e => {
-  const files = [...e.target.files]; let n = 0, dup = 0, lastId = null;
+  const files = [...e.target.files]; let n = 0, upd = 0, dup = 0, lastId = null;
   for (const f of files){
     try {
       let text = await f.text();
       if (/\.json$/i.test(f.name) || /^\s*\{\s*"songbook"/.test(text)){
         const data = JSON.parse(text);
-        const have = new Set(state.songs.map(s => s.text));
         for (const t of (data.songs || [])){
           if (typeof t.text !== 'string') continue;
-          if (have.has(t.text)){ dup++; continue; }
-          const s = {id:uid(), text:t.text, prefs:Object.assign(DEF(), t.prefs || {})};
-          state.songs.push(s); lastId = s.id; n++;
+          const r = addOrUpdate(t.text, t.prefs);
+          if (r.status === 'new') n++; else if (r.status === 'updated') upd++; else dup++;
+          lastId = r.id;
         }
         continue;
       }
       if (!/\{\s*(title|t)\s*:/i.test(text)) text = `{title: ${f.name.replace(/\.[^.]+$/,'')}}\n` + text;
-      const s = {id:uid(), text, prefs:DEF()}; state.songs.push(s); lastId = s.id; n++;
+      const r = addOrUpdate(text); lastId = r.id;
+      if (r.status === 'new') n++; else if (r.status === 'updated') upd++; else dup++;
     } catch(err){}
   }
   e.target.value = '';
   try { cache.clear(); } catch(_){}
   if (lastId){ state.current = lastId; save(); renderAll(); closeLib(); }
-  toast(n ? `Imported ${n} song${n > 1 ? 's' : ''}` + (dup ? ` (${dup} already here)` : '') : dup ? 'Those songs are already in your songbook' : 'Could not read that file');
+  const parts = [];
+  if (n) parts.push(`Added ${n} song${n > 1 ? 's' : ''}`);
+  if (upd) parts.push(`updated ${upd}`);
+  if (dup) parts.push(`${dup} already up to date`);
+  toast(parts.length ? parts.join(', ').replace(/^./, c => c.toUpperCase()) : 'Could not read that file');
 };
 
 /* Backup */
