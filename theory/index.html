@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Theory">
+<meta name="theme-color" content="#eef0f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10131a" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<title>Guitar Theory — a course that writes itself</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/course.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar"><a href="../">← Songbook</a><span>New lesson every weekday, 5:30 AM</span></div>
+  <div class="kicker" style="margin-top:22px">A course that writes itself</div>
+  <h1>Music Theory for Guitar</h1>
+  <p class="lede">Every weekday morning an AI coach writes a new lesson just for you. It reads your quiz scores first, so it goes back over what tripped you up and moves on from what you've already got. Short lessons, hands on the neck, and the theory behind the songs you actually play.</p>
+
+  <div class="hero" id="today"><div class="kicker">Loading…</div></div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <h2 style="margin:0">Your progress</h2><span id="stats" class="mono" style="color:var(--muted)"></span>
+    </div>
+    <div class="bar"><i id="bar" style="width:0"></i></div>
+    <ul class="lesson-list" id="list"></ul>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Where this is headed</h2>
+    <table>
+      <tr><th>Unit</th><th>What you'll be able to do</th></tr>
+      <tr><td>1 · Notes on the neck</td><td>Name any note on the low E and A strings without counting</td></tr>
+      <tr><td>2 · The major scale</td><td>Build a major scale in any key and play it in one position</td></tr>
+      <tr><td>3 · Keys & the number system</td><td>Know the 1-4-5 of any key and read a Nashville number chart</td></tr>
+      <tr><td>4 · How chords are built</td><td>Know why a chord is major or minor, and what makes a 7th</td></tr>
+      <tr><td>5 · Country & gospel progressions</td><td>Hear and name the common progressions, transpose on the fly, use a capo smart</td></tr>
+      <tr><td>6 · Rhythm & feel</td><td>Count it, strum it: boom-chick, shuffle, waltz time</td></tr>
+      <tr><td>7 · Walking it</td><td>Bass runs and walk-ups between chords, the country way</td></tr>
+      <tr><td>8 · Licks & the pentatonic</td><td>Fill between lines with the major and minor pentatonic</td></tr>
+      <tr><td>9 · Ear training</td><td>Pick out a song's chords by ear</td></tr>
+    </table>
+  </div>
+
+  <p class="foot">Built and taught by an AI agent, one lesson at a time. Keep pickin'. 🤠</p>
+</div>
+<script>
+(async function(){
+  let list = [];
+  try { list = await (await fetch('lessons.json', {cache:'no-store'})).json(); } catch(e){}
+  let results = {}; try { results = JSON.parse(localStorage.getItem('gt-results')) || {}; } catch(e){}
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const done = list.filter(l => results[l.n]).length;
+  document.getElementById('stats').textContent = `${done} of ${list.length} lessons done`;
+  document.getElementById('bar').style.width = (list.length ? done/list.length*100 : 0) + '%';
+  document.getElementById('list').innerHTML = list.slice().reverse().map(l => {
+    const r = results[l.n];
+    return `<li><span class="n">${String(l.n).padStart(2,'0')}</span>
+      <a href="${esc(l.file)}">${esc(l.title)}<span class="meta">${esc(l.unit)} · ${esc(l.date)} · ~${l.minutes} min</span></a>
+      <span class="st ${r ? 'done' : ''}">${r ? '✓ ' + r.score + '/' + r.total : ''}</span></li>`;
+  }).join('');
+  const next = list.find(l => !results[l.n]) || list[list.length-1];
+  const today = document.getElementById('today');
+  if(next){
+    const isNew = !results[next.n];
+    today.innerHTML = `<div class="kicker">${isNew ? 'Up next' : 'All caught up — newest lesson'} · Lesson ${next.n}</div>
+      <h2>${esc(next.title)}</h2><p>${esc(next.summary || '')}</p>
+      <a class="btn" href="${esc(next.file)}">${isNew ? 'Start lesson' : 'Open it again'} →</a>`;
+  } else today.innerHTML = '<div class="kicker">First lesson lands tomorrow morning</div>';
+})();
+</script>
+</body>
+</html>

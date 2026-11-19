@@ -1,0 +1,103 @@
+/* Guitar Theory course: shared styles. Matches the Songbook app's look. */
+:root{
+  --bg:#eef0f3; --surface:#ffffff; --ink:#191d29; --muted:#596175; --line:#d9dde5;
+  --accent:#1f4fd1; --accent-soft:#e4ebfc; --good:#127a3e; --good-soft:#dff3e6;
+  --bad:#b42318; --bad-soft:#fbe4e1; --wood:#c89a62; --wood-dark:#8a6338; --fret:#b9bcc4; --string:#6b6f79;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#10131a; --surface:#181c25; --ink:#e7eaf1; --muted:#949cae; --line:#2b3140;
+    --accent:#8aa9ff; --accent-soft:#1e2842; --good:#5fd38d; --good-soft:#16301f;
+    --bad:#ff8a80; --bad-soft:#3a1d1b; --wood:#6b4a2b; --wood-dark:#4a321c; --fret:#8d929c; --string:#a9adb6;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:19px/1.6 var(--f-body);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.wrap{max-width:820px;margin:0 auto;padding:20px 18px 80px}
+a{color:var(--accent)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;letter-spacing:-.01em}
+h1{font-size:2.1rem;margin:.2em 0 .3em}
+h2{font-size:1.45rem;margin:1.8em 0 .5em}
+h3{font-size:1.15rem;margin:1.4em 0 .4em}
+p{margin:.6em 0}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:.9rem;color:var(--muted)}
+.topbar a{text-decoration:none;font-weight:700}
+.kicker{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.lede{font-size:1.15rem;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:18px 0}
+.callout{background:var(--accent-soft);border-radius:14px;padding:14px 18px;margin:18px 0}
+.callout.review{background:var(--bad-soft)}
+.callout b:first-child{display:block;font-family:var(--f-display);margin-bottom:2px}
+.try{border-left:4px solid var(--accent);padding:4px 0 4px 14px;margin:18px 0}
+.try::before{content:"🎸 Try it";display:block;font-weight:700;font-family:var(--f-display);color:var(--accent)}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.95rem}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+th{color:var(--muted);font-weight:700}
+.notes-row{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.notes-row span{font-family:var(--f-mono);font-weight:700;min-width:44px;text-align:center;padding:8px 6px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.notes-row span.nat{background:var(--accent);color:#fff;border-color:var(--accent)}
+.notes-row span.gap{background:transparent;border-style:dashed;color:var(--muted)}
+button,.btn{font:700 1rem var(--f-body);border:0;border-radius:12px;padding:11px 16px;background:var(--accent);color:#fff;cursor:pointer;text-decoration:none;display:inline-block;touch-action:manipulation}
+button.ghost,.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+button:disabled{opacity:.5}
+.play{display:inline-flex;align-items:center;gap:8px;margin:4px 4px 4px 0}
+.play::before{content:"▶";font-size:.8em}
+.play.playing::before{content:"♪"}
+
+/* Fretboard */
+.fretboard{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 10px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fretboard svg{display:block;min-width:640px;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.fb-cap{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:.9rem;color:var(--muted);padding:4px 6px 0}
+.fb-game{font-family:var(--f-display);font-size:1.25rem;color:var(--ink)}
+.fb-game b{color:var(--accent);font-size:1.5rem}
+.fb-flash{font-weight:700}
+.fb-flash.ok{color:var(--good)} .fb-flash.no{color:var(--bad)}
+.dot{cursor:pointer}
+.dot circle{transition:r .12s}
+.dot text{pointer-events:none;font-family:var(--f-mono);font-weight:700}
+
+/* Chord diagrams */
+.chords{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0}
+.chord{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px 6px;text-align:center;cursor:pointer;touch-action:manipulation}
+.chord .name{font-family:var(--f-mono);font-weight:700;font-size:1.15rem}
+.chord .hint{font-size:.75rem;color:var(--muted)}
+.chord svg{width:110px;height:auto;display:block;margin:2px auto}
+
+/* Quiz */
+.quiz{background:var(--surface);border:2px solid var(--accent);border-radius:18px;padding:18px 20px;margin:28px 0}
+.quiz h2{margin-top:0}
+.q{margin:18px 0 22px}
+.q .qtext{font-weight:700;margin-bottom:8px}
+.q .qnum{font-family:var(--f-mono);color:var(--accent);margin-right:6px}
+.choices{display:grid;gap:8px}
+.choice{text-align:left;background:var(--bg);color:var(--ink);border:2px solid var(--line);font-weight:400;padding:12px 14px}
+.choice.right{border-color:var(--good);background:var(--good-soft)}
+.choice.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.explain{font-size:.95rem;color:var(--muted);margin-top:8px;display:none}
+.q.done .explain{display:block}
+.score{font-family:var(--f-display);font-size:1.6rem;margin:6px 0}
+.result{display:none}
+.result.show{display:block}
+
+/* Course home */
+.lesson-list{list-style:none;padding:0;margin:0}
+.lesson-list li{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line)}
+.lesson-list .n{font-family:var(--f-mono);font-weight:700;color:var(--muted);width:2.4em}
+.lesson-list a{flex:1;text-decoration:none;color:var(--ink);font-weight:700}
+.lesson-list .meta{font-size:.82rem;color:var(--muted);font-weight:400;display:block}
+.lesson-list .st{font-family:var(--f-mono);font-size:.85rem;white-space:nowrap}
+.st.done{color:var(--good)}
+.hero{background:var(--accent);color:#fff;border-radius:20px;padding:22px 22px;margin:18px 0}
+.hero a.btn{background:#fff;color:#1f4fd1;margin-top:8px}
+.hero .kicker{color:#cfdcff}
+.hero h2{margin:.2em 0}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--good)}
+.foot{margin-top:40px;font-size:.85rem;color:var(--muted);text-align:center}
+.next-prev{display:flex;justify-content:space-between;gap:12px;margin-top:30px}
