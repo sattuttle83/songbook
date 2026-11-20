@@ -30,7 +30,7 @@ Quiz results arrive as GitHub issues titled `Results: Lesson N — X/Y` (the stu
 ## Syllabus (a plan, not a contract: adapt it)
 **Unit 1 · Notes on the neck**
 1. The musical alphabet & the low E string ✅
-2. The A string, and the octave shortcut (same note two strings up, two frets up)
+2. The A string, and the octave shortcut (same note two strings up, two frets up) ✅ (landed on a Friday, so it also carried the Friday review + G-C-D "put it to work" and a 10-question quiz)
 3. Sharps vs. flats: when a note gets which name; finding sharps on E and A
 4. Root notes for barre and power-chord shapes on E and A (the "movable chord" idea)
 5. Friday review: name-that-note drills, E and A strings
@@ -106,3 +106,4 @@ Widgets provided by `assets/course.js`:
 ## Progress log
 (Newest at the bottom. One short entry per run: date, lesson published, results read, what changed and why.)
 - 2026-11-19: Course set up. Lesson 1 (musical alphabet & low E string) published. No results yet.
+- 2026-11-20 (Fri): Lesson 2 (A string & octave shortcut) published with Friday review elements folded in. No results issues yet. Note: course started on a Thursday, so the syllabus's numbered Friday slots won't line up with real Fridays; follow the calendar for Friday reviews.

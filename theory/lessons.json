@@ -7,6 +7,30 @@
     "minutes": 15,
     "summary": "The 12 notes, why every fret is a half step, and how to find any natural note on your thickest string.",
     "file": "lessons/001-musical-alphabet.html",
-    "topics": ["musical-alphabet", "half-steps-BC-EF", "frets-half-steps", "low-E-notes", "ear-half-whole", "octave-12th-fret"]
+    "topics": [
+      "musical-alphabet",
+      "half-steps-BC-EF",
+      "frets-half-steps",
+      "low-E-notes",
+      "ear-half-whole",
+      "octave-12th-fret"
+    ]
+  },
+  {
+    "n": 2,
+    "date": "2026-11-20",
+    "title": "The A string & the octave shortcut",
+    "unit": "Unit 1 · Notes on the neck",
+    "minutes": 15,
+    "summary": "Map the A string, find any note's octave with the two-strings-up, two-frets-up shape, and put it to work in a G-C-D.",
+    "file": "lessons/002-a-string-octaves.html",
+    "topics": [
+      "A-string-notes",
+      "octave-shape",
+      "ear-octave",
+      "chord-roots",
+      "low-E-notes",
+      "half-steps-BC-EF"
+    ]
   }
 ]
