@@ -32,5 +32,22 @@
       "low-E-notes",
       "half-steps-BC-EF"
     ]
+  },
+  {
+    "n": 3,
+    "date": "2026-11-23",
+    "title": "Sharps vs. flats",
+    "unit": "Unit 1 · Notes on the neck",
+    "minutes": 15,
+    "summary": "Why every in-between note has two names, which name a song uses, and the slide-one-fret trick for finding sharps and flats on the E and A strings.",
+    "file": "lessons/003-sharps-and-flats.html",
+    "topics": [
+      "sharps-flats-same",
+      "sharp-flat-meaning",
+      "low-E-sharps",
+      "A-string-sharps",
+      "half-steps-BC-EF",
+      "ear-up-down"
+    ]
   }
 ]
