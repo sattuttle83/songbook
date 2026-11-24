@@ -32,7 +32,7 @@ Quiz results arrive as GitHub issues titled `Results: Lesson N — X/Y` (the stu
 1. The musical alphabet & the low E string ✅
 2. The A string, and the octave shortcut (same note two strings up, two frets up) ✅ (landed on a Friday, so it also carried the Friday review + G-C-D "put it to work" and a 10-question quiz)
 3. Sharps vs. flats: when a note gets which name; finding sharps on E and A ✅
-4. Root notes for barre and power-chord shapes on E and A (the "movable chord" idea)
+4. Root notes for barre and power-chord shapes on E and A (the "movable chord" idea) ✅
 5. Friday review: name-that-note drills, E and A strings
 
 **Unit 2 · The major scale**
@@ -108,3 +108,4 @@ Widgets provided by `assets/course.js`:
 - 2026-11-19: Course set up. Lesson 1 (musical alphabet & low E string) published. No results yet.
 - 2026-11-20 (Fri): Lesson 2 (A string & octave shortcut) published with Friday review elements folded in. No results issues yet. Note: course started on a Thursday, so the syllabus's numbered Friday slots won't line up with real Fridays; follow the calendar for Friday reviews.
 - 2026-11-23 (Mon): Lesson 3 (sharps vs. flats) published. No results issues yet, so followed the plan; added a gentle "tap Send" line. First listening question in the quiz (`ear-up-down`).
+- 2026-11-24 (Tue): Lesson 4 (movable chords & their root notes: power chords first, barre chords shown with the same root rule) published. No results issues yet, so followed the plan. New topic slugs: `movable-shapes`, `E-shape-root`, `A-shape-root`, `ear-power-vs-major`. Syllabus #5 (Friday review) is skipped for now since today isn't Friday; Wed/Thu continue into Unit 2, and this Friday (11/27) gets the review.

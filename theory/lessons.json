@@ -49,5 +49,21 @@
       "half-steps-BC-EF",
       "ear-up-down"
     ]
+  },
+  {
+    "n": 4,
+    "date": "2026-11-24",
+    "title": "Movable chords & their root notes",
+    "unit": "Unit 1 · Notes on the neck",
+    "minutes": 15,
+    "summary": "Power chords and barre chords as movable shapes: slide one shape anywhere and name the chord by its root on the low E or A string.",
+    "file": "lessons/004-movable-chord-roots.html",
+    "topics": [
+      "movable-shapes",
+      "E-shape-root",
+      "A-shape-root",
+      "octave-shape",
+      "ear-power-vs-major"
+    ]
   }
 ]
