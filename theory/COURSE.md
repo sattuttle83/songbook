@@ -36,7 +36,7 @@ Quiz results arrive as GitHub issues titled `Results: Lesson N — X/Y` (the stu
 5. Friday review: name-that-note drills, E and A strings
 
 **Unit 2 · The major scale**
-6. Whole and half steps: the W-W-H-W-W-W-H formula
+6. Whole and half steps: the W-W-H-W-W-W-H formula ✅ (published as Lesson 5; C major on the B string, E major and the G/F♯ teaser)
 7. Building the G major scale (one F♯), playing it on one string
 8. The major scale in one position (G, open position)
 9. C, D, A and E major: which sharps each key has
@@ -109,3 +109,4 @@ Widgets provided by `assets/course.js`:
 - 2026-11-20 (Fri): Lesson 2 (A string & octave shortcut) published with Friday review elements folded in. No results issues yet. Note: course started on a Thursday, so the syllabus's numbered Friday slots won't line up with real Fridays; follow the calendar for Friday reviews.
 - 2026-11-23 (Mon): Lesson 3 (sharps vs. flats) published. No results issues yet, so followed the plan; added a gentle "tap Send" line. First listening question in the quiz (`ear-up-down`).
 - 2026-11-24 (Tue): Lesson 4 (movable chords & their root notes: power chords first, barre chords shown with the same root rule) published. No results issues yet, so followed the plan. New topic slugs: `movable-shapes`, `E-shape-root`, `A-shape-root`, `ear-power-vs-major`. Syllabus #5 (Friday review) is skipped for now since today isn't Friday; Wed/Thu continue into Unit 2, and this Friday (11/27) gets the review.
+- 2026-11-25 (Wed): Lesson 5 (whole/half steps & the W-W-H-W-W-W-H major scale formula) published. No results issues yet, so followed the plan. New topic slugs: `major-formula`, `major-scale-one-string`, `major-scale-notes`, `ear-major-scale`. Thursday continues with syllabus #7 (G major on one string); Friday 11/27 is the review (Unit 1 roots + this week's scale work).

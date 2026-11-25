@@ -65,5 +65,22 @@
       "octave-shape",
       "ear-power-vs-major"
     ]
+  },
+  {
+    "n": 5,
+    "date": "2026-11-25",
+    "title": "Whole steps, half steps & the major scale formula",
+    "unit": "Unit 2 · The major scale",
+    "minutes": 15,
+    "summary": "The W-W-H-W-W-W-H recipe that builds every major scale, C major up the B string, and why G needs an F♯.",
+    "file": "lessons/005-whole-and-half-steps.html",
+    "topics": [
+      "frets-half-steps",
+      "major-formula",
+      "half-steps-BC-EF",
+      "major-scale-one-string",
+      "major-scale-notes",
+      "ear-major-scale"
+    ]
   }
 ]
