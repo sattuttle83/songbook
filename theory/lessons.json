@@ -82,5 +82,22 @@
       "major-scale-notes",
       "ear-major-scale"
     ]
+  },
+  {
+    "n": 6,
+    "date": "2026-11-26",
+    "title": "Building the G major scale",
+    "unit": "Unit 2 · The major scale",
+    "minutes": 15,
+    "summary": "Build G major with the recipe, see why it has exactly one sharp (F♯, not G♭), play it up the G and low E strings, and spot it inside G, C and D.",
+    "file": "lessons/006-g-major-scale.html",
+    "topics": [
+      "G-major-scale",
+      "scale-letter-rule",
+      "major-formula",
+      "major-scale-one-string",
+      "scale-in-chords",
+      "ear-major-scale"
+    ]
   }
 ]
