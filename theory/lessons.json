@@ -99,5 +99,26 @@
       "scale-in-chords",
       "ear-major-scale"
     ]
+  },
+  {
+    "n": 7,
+    "date": "2026-11-27",
+    "title": "Friday review: roots, recipe & G major at work",
+    "unit": "Unit 2 · The major scale",
+    "minutes": 15,
+    "summary": "Review the week (sharps, movable roots, the major scale recipe, G major), then play G – C – G – D – G with a G-A-B walk and slide it up a whole step with power chords.",
+    "file": "lessons/007-friday-review-week-one.html",
+    "topics": [
+      "low-E-notes",
+      "A-string-sharps",
+      "E-shape-root",
+      "A-shape-root",
+      "major-formula",
+      "G-major-scale",
+      "major-scale-notes",
+      "scale-in-chords",
+      "movable-shapes",
+      "ear-half-whole"
+    ]
   }
 ]

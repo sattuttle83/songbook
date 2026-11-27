@@ -33,7 +33,7 @@ Quiz results arrive as GitHub issues titled `Results: Lesson N — X/Y` (the stu
 2. The A string, and the octave shortcut (same note two strings up, two frets up) ✅ (landed on a Friday, so it also carried the Friday review + G-C-D "put it to work" and a 10-question quiz)
 3. Sharps vs. flats: when a note gets which name; finding sharps on E and A ✅
 4. Root notes for barre and power-chord shapes on E and A (the "movable chord" idea) ✅
-5. Friday review: name-that-note drills, E and A strings
+5. Friday review: name-that-note drills, E and A strings ✅ (folded into Lesson 7, the 11/27 Friday review)
 
 **Unit 2 · The major scale**
 6. Whole and half steps: the W-W-H-W-W-W-H formula ✅ (published as Lesson 5; C major on the B string, E major and the G/F♯ teaser)
@@ -111,3 +111,4 @@ Widgets provided by `assets/course.js`:
 - 2026-11-24 (Tue): Lesson 4 (movable chords & their root notes: power chords first, barre chords shown with the same root rule) published. No results issues yet, so followed the plan. New topic slugs: `movable-shapes`, `E-shape-root`, `A-shape-root`, `ear-power-vs-major`. Syllabus #5 (Friday review) is skipped for now since today isn't Friday; Wed/Thu continue into Unit 2, and this Friday (11/27) gets the review.
 - 2026-11-25 (Wed): Lesson 5 (whole/half steps & the W-W-H-W-W-W-H major scale formula) published. No results issues yet, so followed the plan. New topic slugs: `major-formula`, `major-scale-one-string`, `major-scale-notes`, `ear-major-scale`. Thursday continues with syllabus #7 (G major on one string); Friday 11/27 is the review (Unit 1 roots + this week's scale work).
 - 2026-11-26 (Thu): Lesson 6 (building the G major scale) published. No results issues yet, so followed the plan. New topic slugs: `G-major-scale`, `scale-letter-rule`, `scale-in-chords`. Friday 11/27 is the review (Unit 1 roots/sharps + major formula + G major) with a G-C-D to play.
+- 2026-11-27 (Fri): Lesson 7 (Friday review: roots, recipe & G major at work) published. No results issues yet, so followed the plan. Covered syllabus #5 (E/A name-that-note game, sharps included) plus this week's recipe and G major; "put it to work" was G – C – G – D – G with a G-A-B walk into C, then the power-chord version slid up a whole step to A – D – E. 10-question quiz, all reused slugs. Monday continues with syllabus #8 (G major in one position).
